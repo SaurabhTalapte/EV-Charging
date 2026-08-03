@@ -21,8 +21,24 @@ function saveState(state) {
 export function AppProvider({ children }) {
   const saved = loadState();
 
-  const [user, setUser] = useState(saved?.user || null);
-  const [vehicles, setVehicles] = useState(saved?.vehicles || []);
+  const [user, setUser] = useState(saved?.user || {
+    id: 'u-default',
+    name: 'Saurabh Talapte',
+    email: 'saurabh@example.com',
+    avatar: null
+  });
+
+  const [vehicles, setVehicles] = useState(saved?.vehicles || [
+    {
+      id: 'v-default-1',
+      make: 'Tata',
+      model: 'Nexon EV Max',
+      battery: 40.5,
+      plugType: 'CCS2',
+      licensePlate: 'MH-12-EV-8888'
+    }
+  ]);
+
   const [bookings, setBookings] = useState(saved?.bookings || []);
   const [reviews, setReviews] = useState(saved?.reviews || []);
   const [receipts, setReceipts] = useState(saved?.receipts || []);
@@ -47,7 +63,7 @@ export function AppProvider({ children }) {
   };
 
   const loginWithGoogle = () => {
-    const u = { id: 'u-google-' + Date.now(), email: 'user@gmail.com', name: 'Google User', avatar: null };
+    const u = { id: 'u-google-' + Date.now(), email: 'saurabh@gmail.com', name: 'Saurabh Talapte', avatar: null };
     setUser(u);
     return u;
   };
@@ -80,14 +96,18 @@ export function AppProvider({ children }) {
       status: 'confirmed',
       createdAt: new Date().toISOString(),
     };
-    setBookings(prev => [...prev, b]);
+    setBookings(prev => [b, ...prev]);
     return b;
   };
 
-  const completeBooking = (bookingId) => {
+  const updateBookingStatus = (bookingId, status) => {
     setBookings(prev => prev.map(b =>
-      b.id === bookingId ? { ...b, status: 'completed' } : b
+      b.id === bookingId ? { ...b, status } : b
     ));
+  };
+
+  const completeBooking = (bookingId) => {
+    updateBookingStatus(bookingId, 'completed');
   };
 
   // Reviews
@@ -95,14 +115,14 @@ export function AppProvider({ children }) {
     const r = {
       ...review,
       id: 'r-' + Date.now(),
-      user: user?.name || 'Anonymous',
+      user: user?.name || 'Anonymous EV Driver',
       date: new Date().toISOString().split('T')[0],
     };
-    setReviews(prev => [...prev, r]);
+    setReviews(prev => [r, ...prev]);
     // Also add to the station
     setStations(prev => prev.map(s =>
       s.id === review.stationId
-        ? { ...s, reviews: [...s.reviews, r], totalReviews: s.totalReviews + 1 }
+        ? { ...s, reviews: [r, ...(s.reviews || [])], totalReviews: (s.totalReviews || 0) + 1 }
         : s
     ));
     return r;
@@ -111,7 +131,7 @@ export function AppProvider({ children }) {
   // Receipts
   const addReceipt = (receipt) => {
     const rc = { ...receipt, id: 'rc-' + Date.now(), date: new Date().toISOString() };
-    setReceipts(prev => [...prev, rc]);
+    setReceipts(prev => [rc, ...prev]);
     return rc;
   };
 
@@ -119,7 +139,7 @@ export function AppProvider({ children }) {
     user, login, signup, loginWithGoogle, logout,
     vehicles, addVehicle, removeVehicle,
     stations,
-    bookings, createBooking, addBooking: createBooking, completeBooking,
+    bookings, createBooking, addBooking: createBooking, completeBooking, updateBookingStatus,
     reviews, addReview,
     receipts, addReceipt,
   };

@@ -136,27 +136,29 @@ export default function DashboardPage() {
           <div className="space-y-3">
             {recentBookings.map(b => {
               const station = stations.find(s => s.id === b.stationId);
+              const targetUrl = b.status === 'completed' ? '/history' : `/charging/${b.id}`;
               return (
-                <motion.div
-                  key={b.id}
-                  whileHover={{ x: 6, scale: 1.01 }}
-                  className="glass rounded-xl p-4 flex items-center gap-4 border border-white/5 hover:border-cyan-500/30 shadow-md"
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
-                    <Zap className="w-5 h-5 animate-electric" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{station?.name || 'Unknown Station'}</p>
-                    <p className="text-xs text-[var(--color-text-dim)]">{b.duration} min • {b.connector}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' :
-                    b.status === 'confirmed' ? 'bg-cyan-500/10 text-cyan-400' :
-                    'bg-amber-500/10 text-amber-400'
-                  }`}>
-                    {b.status}
-                  </span>
-                </motion.div>
+                <Link key={b.id} to={targetUrl} className="block">
+                  <motion.div
+                    whileHover={{ x: 6, scale: 1.01 }}
+                    className="glass rounded-xl p-4 flex items-center gap-4 border border-white/5 hover:border-cyan-500/30 shadow-md"
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                      <Zap className="w-5 h-5 animate-electric" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{b.stationName || station?.name || 'Charging Station'}</p>
+                      <p className="text-xs text-[var(--color-text-dim)]">{b.duration} min • {b.connector}</p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400' :
+                      b.status === 'confirmed' ? 'bg-cyan-500/10 text-cyan-400' :
+                      'bg-amber-500/10 text-amber-400'
+                    }`}>
+                      {b.status === 'confirmed' ? 'Live Session' : b.status}
+                    </span>
+                  </motion.div>
+                </Link>
               );
             })}
           </div>
