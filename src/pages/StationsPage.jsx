@@ -214,13 +214,22 @@ export default function StationsPage() {
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0">
                       <div className="text-left sm:text-right">
-                        <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-dim)]">Max Output</p>
-                        <p className="text-lg font-extrabold text-cyan-400 font-mono">{bestConnector.power} kW</p>
-                      </div>
-                      <div className="text-right">
                         <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-dim)]">Starting At</p>
                         <p className="text-sm font-bold text-emerald-400">₹{cheapest.price}/kWh</p>
                       </div>
+                      {s.status === 'available' ? (
+                        <Link
+                          to={`/book/${s.id}`}
+                          onClick={e => e.stopPropagation()}
+                          className="px-3.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-semibold text-xs transition-colors border border-cyan-500/30 flex items-center gap-1 mt-1"
+                        >
+                          <Zap className="w-3.5 h-3.5" /> Book Slot
+                        </Link>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-lg bg-white/5 text-[var(--color-text-dim)] text-xs mt-1">
+                          Full
+                        </span>
+                      )}
                     </div>
                   </motion.div>
                 </Link>

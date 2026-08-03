@@ -85,7 +85,13 @@ export default function StationDetailPage() {
         <h2 className="text-lg font-semibold mb-4">Available Connectors</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {station.connectors.map((c, i) => (
-            <div key={i} className="glass rounded-xl p-5 border border-white/5 hover:border-white/10 transition-all">
+            <Link
+              key={i}
+              to={c.available > 0 ? `/book/${station.id}?connector=${c.type}` : '#'}
+              className={`glass rounded-xl p-5 border border-white/5 transition-all block ${
+                c.available > 0 ? 'hover:border-cyan-500/40 hover:bg-white/5 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+              }`}
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Plug className="w-5 h-5 text-cyan-400" />
@@ -113,7 +119,7 @@ export default function StationDetailPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

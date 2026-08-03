@@ -119,7 +119,7 @@ export function AppProvider({ children }) {
     user, login, signup, loginWithGoogle, logout,
     vehicles, addVehicle, removeVehicle,
     stations,
-    bookings, createBooking, completeBooking,
+    bookings, createBooking, addBooking: createBooking, completeBooking,
     reviews, addReview,
     receipts, addReceipt,
   };
