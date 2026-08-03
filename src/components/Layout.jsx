@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { EnergyBackground } from './ModernAnimations';
 import {
   Zap, LayoutDashboard, Car, MapPin, History, LogOut,
   Menu, X, ChevronRight, User
 } from 'lucide-react';
+
 
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -26,7 +28,8 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--color-surface)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-surface)] relative">
+      <EnergyBackground />
       {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (
