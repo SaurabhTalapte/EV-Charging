@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { GlassTiltCard } from '../components/ModernAnimations';
 import {
-  Calendar, Clock, Zap, Battery, Car, Plug, AlertCircle, CheckCircle2, ChevronLeft, Plus
+  Calendar, Clock, Zap, Battery, Car, Plug, AlertCircle, CheckCircle2, ChevronLeft, Plus, CreditCard, ArrowRight
 } from 'lucide-react';
 
 export default function BookingPage() {
@@ -83,8 +83,7 @@ export default function BookingPage() {
     setSelectedVehicle(newV.id);
   };
 
-  const handleBook = async (e) => {
-    e.preventDefault();
+  const processBooking = (directPayment = false) => {
     setErrorMsg('');
 
     if (!selectedVehicle) {
@@ -101,10 +100,7 @@ export default function BookingPage() {
     }
 
     setLoading(true);
-    
-    // Simulate booking API latency
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     const v = vehicles.find(x => x.id === selectedVehicle);
     const c = station.connectors.find(x => x.type === selectedConnector);
 
@@ -114,7 +110,7 @@ export default function BookingPage() {
       return;
     }
     
-    // Call context function to persist booking
+    // Call context function to persist booking instantly
     const newBooking = createBooking({
       stationId: station.id,
       stationName: station.name,
@@ -128,11 +124,15 @@ export default function BookingPage() {
       power: c.power,
       price: c.price
     });
-    
+
     setLoading(false);
 
-    // Navigate using the returned booking ID
-    navigate(`/charging/${newBooking.id}`);
+    // Instant Navigation based on user choice
+    if (directPayment) {
+      navigate(`/payment/${newBooking.id}`);
+    } else {
+      navigate(`/charging/${newBooking.id}`);
+    }
   };
 
   return (
@@ -156,7 +156,7 @@ export default function BookingPage() {
       </div>
 
       <GlassTiltCard className="rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
-        <form onSubmit={handleBook} className="space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); processBooking(false); }} className="space-y-6">
           
           {/* Error Banner */}
           <AnimatePresence>
@@ -316,28 +316,38 @@ export default function BookingPage() {
             </div>
           </div>
 
-          {/* Info Notice */}
-          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4 flex gap-3 items-center">
-            <AlertCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-            <p className="text-xs text-[var(--color-text-dim)] leading-relaxed">
-              Your slot will be reserved for 15 minutes past your arrival time.
-            </p>
-          </div>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={() => processBooking(false)}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50 text-sm"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>Start Live Session <Zap className="w-4 h-4" /></>
+              )}
+            </motion.button>
 
-          {/* Submit Button */}
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-white font-semibold transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-50 text-base"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>Confirm & Start Charging Session <CheckCircle2 className="w-5 h-5" /></>
-            )}
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={() => processBooking(true)}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50 text-sm"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>Pay Now & Checkout <CreditCard className="w-4 h-4" /></>
+              )}
+            </motion.button>
+          </div>
         </form>
       </GlassTiltCard>
     </motion.div>
