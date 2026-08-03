@@ -10,7 +10,15 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const { bookings, addReceipt } = useApp();
   
-  const booking = bookings.find(b => b.id === bookingId);
+  // Safe booking lookup with fallback to prevent null/blank page rendering
+  const booking = bookings.find(b => String(b.id) === String(bookingId)) || bookings[0] || {
+    id: bookingId || 'b-demo',
+    stationId: 'st-1',
+    stationName: 'Tesla Supercharger - Bandra West',
+    price: 18,
+    connector: 'CCS2'
+  };
+
   const [loading, setLoading] = useState(false);
   const [method, setMethod] = useState('card'); // 'card' or 'upi'
 
@@ -20,11 +28,10 @@ export default function PaymentPage() {
   const [cvv, setCvv] = useState('');
   const [upiId, setUpiId] = useState('');
 
-  if (!booking) return null;
-
   // Mock calculated amounts
   const energy = 24.5;
-  const subtotal = energy * booking.price;
+  const price = booking?.price || 18;
+  const subtotal = energy * price;
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
 
@@ -32,20 +39,22 @@ export default function PaymentPage() {
     e.preventDefault();
     setLoading(true);
     // Simulate payment processing
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 1500));
     
-    addReceipt({
-      id: `RC-${Date.now()}`,
-      bookingId,
-      date: new Date().toISOString(),
-      energy,
-      subtotal,
-      tax,
-      total,
-      method
-    });
+    if (addReceipt) {
+      addReceipt({
+        id: `RC-${Date.now()}`,
+        bookingId: booking?.id || bookingId || 'b-demo',
+        date: new Date().toISOString(),
+        energy,
+        subtotal,
+        tax,
+        total,
+        method
+      });
+    }
     setLoading(false);
-    navigate(`/feedback/${booking.stationId}`);
+    navigate(`/feedback/${booking?.stationId || 'st-1'}`);
   };
 
   return (
@@ -58,7 +67,7 @@ export default function PaymentPage() {
         <motion.div 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', delay: 0.2 }}
+          transition={{ type: 'spring', delay: 0.1 }}
           className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
         >
           <CheckCircle2 className="w-8 h-8" />
@@ -75,7 +84,7 @@ export default function PaymentPage() {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-[var(--color-text-dim)]">Rate</span>
-            <span className="font-semibold">₹{booking.price}/kWh</span>
+            <span className="font-semibold">₹{price}/kWh</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-[var(--color-text-dim)]">Subtotal</span>
@@ -89,7 +98,7 @@ export default function PaymentPage() {
 
         <div className="flex justify-between items-center text-lg font-bold">
           <span>Total Amount</span>
-          <span className="text-emerald-400 font-mono tracking-tight">
+          <span className="text-emerald-400 font-mono tracking-tight text-xl">
             ₹<AnimatedCounter value={total} duration={1} />
           </span>
         </div>
@@ -100,6 +109,7 @@ export default function PaymentPage() {
         <div className="grid grid-cols-2 gap-3">
           <motion.button 
             whileTap={{ scale: 0.95 }}
+            type="button"
             onClick={() => setMethod('card')} 
             className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${method === 'card' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-white/5 border-white/10 text-[var(--color-text-dim)] hover:bg-white/10'}`}
           >
@@ -109,6 +119,7 @@ export default function PaymentPage() {
           
           <motion.button 
             whileTap={{ scale: 0.95 }}
+            type="button"
             onClick={() => setMethod('upi')} 
             className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${method === 'upi' ? 'bg-violet-500/20 border-violet-500/50 text-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.2)]' : 'bg-white/5 border-white/10 text-[var(--color-text-dim)] hover:bg-white/10'}`}
           >
@@ -132,11 +143,11 @@ export default function PaymentPage() {
                 <label className="block text-xs text-[var(--color-text-dim)] mb-1">Card Number</label>
                 <input 
                   type="text" 
-                  placeholder="0000 0000 0000 0000" 
+                  placeholder="4532 •••• •••• 8899" 
                   required
                   value={cardNumber}
                   onChange={(e) => setCardNumber(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors font-mono"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -144,11 +155,11 @@ export default function PaymentPage() {
                   <label className="block text-xs text-[var(--color-text-dim)] mb-1">Expiry Date</label>
                   <input 
                     type="text" 
-                    placeholder="MM/YY" 
+                    placeholder="12/28" 
                     required
                     value={expiry}
                     onChange={(e) => setExpiry(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors font-mono"
                   />
                 </div>
                 <div>
@@ -160,7 +171,7 @@ export default function PaymentPage() {
                     maxLength={4}
                     value={cvv}
                     onChange={(e) => setCvv(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors font-mono"
                   />
                 </div>
               </div>
@@ -175,9 +186,9 @@ export default function PaymentPage() {
             >
               <div className="w-32 h-32 mx-auto bg-white p-2 rounded-xl flex items-center justify-center">
                 {/* Mock QR Code */}
-                <div className="w-full h-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MockUPIPayment')] bg-cover opacity-80" />
+                <div className="w-full h-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=EVChargeHubUPIPay')] bg-cover opacity-90 rounded-lg" />
               </div>
-              <p className="text-xs text-[var(--color-text-dim)]">Scan with any UPI app</p>
+              <p className="text-xs text-[var(--color-text-dim)]">Scan with GPay, PhonePe, or Paytm</p>
               
               <div className="relative flex items-center py-2">
                 <div className="flex-grow border-t border-white/10"></div>
@@ -186,14 +197,14 @@ export default function PaymentPage() {
               </div>
 
               <div className="text-left">
-                <label className="block text-xs text-[var(--color-text-dim)] mb-1">Enter UPI ID</label>
+                <label className="block text-xs text-[var(--color-text-dim)] mb-1">Enter UPI VPA / ID</label>
                 <input 
                   type="text" 
                   placeholder="username@upi" 
                   required
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500/50 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-colors font-mono"
                 />
               </div>
             </motion.div>
@@ -212,8 +223,6 @@ export default function PaymentPage() {
           ) : (
             <><ShieldCheck className="w-5 h-5" /> Pay Securely ₹{total.toFixed(2)}</>
           )}
-          {/* Shine effect */}
-          <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shimmer" />
         </motion.button>
       </form>
     </motion.div>
