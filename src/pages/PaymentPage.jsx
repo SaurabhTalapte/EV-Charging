@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { GlassTiltCard, AnimatedCounter } from '../components/ModernAnimations';
-import { Receipt, CheckCircle2, ShieldCheck, ChevronRight, Zap, CreditCard, QrCode } from 'lucide-react';
+import { Receipt, CheckCircle2, ShieldCheck, ChevronRight, Zap, CreditCard, QrCode, Sparkles } from 'lucide-react';
 
 export default function PaymentPage() {
   const { bookingId } = useParams();
@@ -20,9 +20,9 @@ export default function PaymentPage() {
   };
 
   const [loading, setLoading] = useState(false);
-  const [method, setMethod] = useState('card'); // 'card' or 'upi'
+  const [method, setMethod] = useState('upi'); // Set default to UPI (PhonePe)
 
-  // Form states for mock payment
+  // Form states for payment
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
@@ -38,7 +38,7 @@ export default function PaymentPage() {
   const handlePay = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate payment processing
+    // Simulate payment verification
     await new Promise(r => setTimeout(r, 1500));
     
     if (addReceipt) {
@@ -50,7 +50,7 @@ export default function PaymentPage() {
         subtotal,
         tax,
         total,
-        method
+        method: method === 'upi' ? 'PhonePe UPI' : 'Credit Card'
       });
     }
     setLoading(false);
@@ -73,7 +73,7 @@ export default function PaymentPage() {
           <CheckCircle2 className="w-8 h-8" />
         </motion.div>
         <h1 className="text-2xl font-bold">Session Complete</h1>
-        <p className="text-[var(--color-text-dim)] text-sm mt-1">Please complete your payment</p>
+        <p className="text-[var(--color-text-dim)] text-sm mt-1">Complete your EV charging payment</p>
       </div>
 
       <GlassTiltCard className="rounded-2xl p-6 border border-white/10 space-y-6 shadow-xl">
@@ -110,33 +110,81 @@ export default function PaymentPage() {
           <motion.button 
             whileTap={{ scale: 0.95 }}
             type="button"
+            onClick={() => setMethod('upi')} 
+            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${method === 'upi' ? 'bg-violet-600/30 border-violet-500 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'bg-white/5 border-white/10 text-[var(--color-text-dim)] hover:bg-white/10'}`}
+          >
+            <QrCode className="w-6 h-6 text-purple-400" />
+            <span className="text-sm font-semibold flex items-center gap-1">
+              PhonePe UPI <Sparkles className="w-3 h-3 text-purple-400" />
+            </span>
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            type="button"
             onClick={() => setMethod('card')} 
             className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${method === 'card' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-white/5 border-white/10 text-[var(--color-text-dim)] hover:bg-white/10'}`}
           >
             <CreditCard className="w-6 h-6" />
             <span className="text-sm font-medium">Credit Card</span>
           </motion.button>
-          
-          <motion.button 
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={() => setMethod('upi')} 
-            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${method === 'upi' ? 'bg-violet-500/20 border-violet-500/50 text-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.2)]' : 'bg-white/5 border-white/10 text-[var(--color-text-dim)] hover:bg-white/10'}`}
-          >
-            <QrCode className="w-6 h-6" />
-            <span className="text-sm font-medium">UPI</span>
-          </motion.button>
         </div>
       </div>
 
       <form onSubmit={handlePay} className="space-y-6">
         <AnimatePresence mode="wait">
-          {method === 'card' ? (
+          {method === 'upi' ? (
             <motion.div
-              key="card"
+              key="upi"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              className="space-y-4 p-5 rounded-2xl bg-black/60 border border-violet-500/30 text-center shadow-2xl relative overflow-hidden"
+            >
+              {/* PhonePe Header Branding */}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+                  पे
+                </div>
+                <span className="font-bold text-white text-base tracking-wide">PhonePe Accepted Here</span>
+              </div>
+
+              {/* Verified Owner PhonePe QR Code Container */}
+              <div className="w-64 mx-auto bg-black p-3 rounded-2xl border border-violet-500/40 shadow-inner flex flex-col items-center">
+                <img 
+                  src="/phonepe_qr.jpg" 
+                  alt="PhonePe QR Code - SAURBH PRASHANT TALAPTE" 
+                  className="w-full h-auto rounded-xl object-contain shadow-lg hover:scale-105 transition-transform"
+                />
+                <p className="text-xs font-bold text-slate-200 mt-2 font-mono tracking-wider">
+                  SAURBH PRASHANT TALAPTE
+                </p>
+                <p className="text-[10px] text-purple-400 mt-0.5">Scan & Pay Using Any UPI App</p>
+              </div>
+
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-white/10"></div>
+                <span className="flex-shrink-0 mx-4 text-[var(--color-text-dim)] text-xs">OR ENTER VPA</span>
+                <div className="flex-grow border-t border-white/10"></div>
+              </div>
+
+              <div className="text-left">
+                <label className="block text-xs text-[var(--color-text-dim)] mb-1">Enter PhonePe / UPI VPA</label>
+                <input 
+                  type="text" 
+                  placeholder="saurabh@ybl / mobile@upi" 
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-colors font-mono"
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="card"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               className="space-y-4 p-5 rounded-2xl bg-white/5 border border-white/10"
             >
               <div>
@@ -176,38 +224,6 @@ export default function PaymentPage() {
                 </div>
               </div>
             </motion.div>
-          ) : (
-            <motion.div
-              key="upi"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-4 p-5 rounded-2xl bg-white/5 border border-white/10 text-center"
-            >
-              <div className="w-32 h-32 mx-auto bg-white p-2 rounded-xl flex items-center justify-center">
-                {/* Mock QR Code */}
-                <div className="w-full h-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=EVChargeHubUPIPay')] bg-cover opacity-90 rounded-lg" />
-              </div>
-              <p className="text-xs text-[var(--color-text-dim)]">Scan with GPay, PhonePe, or Paytm</p>
-              
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="flex-shrink-0 mx-4 text-[var(--color-text-dim)] text-xs">OR</span>
-                <div className="flex-grow border-t border-white/10"></div>
-              </div>
-
-              <div className="text-left">
-                <label className="block text-xs text-[var(--color-text-dim)] mb-1">Enter UPI VPA / ID</label>
-                <input 
-                  type="text" 
-                  placeholder="username@upi" 
-                  required
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-colors font-mono"
-                />
-              </div>
-            </motion.div>
           )}
         </AnimatePresence>
 
@@ -216,12 +232,12 @@ export default function PaymentPage() {
           whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={loading} 
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 relative overflow-hidden"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 relative overflow-hidden text-base"
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            <><ShieldCheck className="w-5 h-5" /> Pay Securely ₹{total.toFixed(2)}</>
+            <><ShieldCheck className="w-5 h-5" /> Confirm Payment ₹{total.toFixed(2)}</>
           )}
         </motion.button>
       </form>
